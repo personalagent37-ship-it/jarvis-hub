@@ -1,0 +1,21 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+jarvis-env/
+data/*.db
+
+# Server logs
+*.log
+
+# Large Binaries
+yt-dlp
+
+# Session Data
+jarvis_hub/whatsapp_session/
+jarvis_hub/.wwebjs_auth/
+jarvis_hub/.wwebjs_cache/
+
+jarvis_env/
+
+**/node_modules/

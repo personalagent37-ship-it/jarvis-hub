@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=JARVIS Voice Assistant
+Comment=Start JARVIS in wake-word mode
+Exec=/home/talha/Desktop/jartvis/start.sh
+Path=/home/talha/Desktop/jartvis
+Terminal=false
+X-GNOME-Autostart-enabled=true

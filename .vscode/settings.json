@@ -1,0 +1,6 @@
+{
+    "python.defaultInterpreterPath": "/home/talha/Desktop/jartvis/jarvis-env/bin/python",
+    "python.analysis.extraPaths": [
+        "/home/talha/Desktop/jartvis/jarvis-env/lib/python3.12/site-packages"
+    ]
+}

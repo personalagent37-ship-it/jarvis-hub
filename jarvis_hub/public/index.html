@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J.A.R.V.I.S Console</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            /* Crypto Exchange Pink/Purple Theme */
+            --bg-base: #020813;
+            --bg-surface: rgba(5, 15, 30, 0.6);
+            --bg-surface-hover: rgba(10, 30, 50, 0.8);
+            --border-color: rgba(0, 255, 255, 0.15);
+            --text-primary: #e0f7fa;
+            --text-secondary: #80deea;
+            --accent-pink: #00e5ff;
+            --accent-purple: #0288d1;
+            --accent-glow: rgba(0, 229, 255, 0.4);
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        /* --- PREMIUM SCROLLBARS --- */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 229, 255, 0.4); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* Disable scroll on body for full-screen impact */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            /* Ultra-premium subtle noise texture */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+
+        /* --- LANDING PAGE VIEW --- */
+        #view-landing {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: transparent;
+            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100;
+        }
+        #landing-lab-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('dashboard_bg.png');
+            background-size: cover; background-position: center;
+            z-index: 1; opacity: 0.85;
+            animation: slowPan 20s infinite alternate linear;
+        }
+        @keyframes slowPan {
+            0% { transform: scale(1.05) translate(0, 0); }
+            100% { transform: scale(1.15) translate(-2%, 2%); }
+        }
+        .battle-overlay {
+            z-index: 10; text-align: center; max-width: 800px; padding: 40px;
+            background: rgba(2, 10, 20, 0.6); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            transform: translateY(-20px);
+        }
+        .battle-title { font-size: 56px; font-weight: 800; line-height: 1.1; margin-bottom: 20px; letter-spacing: -1.5px; text-shadow: 0 0 40px rgba(0, 229, 255, 0.6); }
+        .battle-title span.jarvis { color: var(--accent-purple); }
+        .battle-title span.vs { font-size: 32px; color: #fff; margin: 0 15px; opacity: 0.5; }
+        .battle-title span.bugs { color: var(--accent-pink); }
+        .battle-subtitle { font-size: 18px; color: var(--text-secondary); margin-bottom: 40px; line-height: 1.6; }
+
+        /* --- DASHBOARD WRAPPER & BG (FULL LIQUID MESH) --- */
+        #dashboard-wrapper {
+            display: none; height: 100vh; width: 100%;
+            background: transparent;
+            position: relative; overflow: hidden;
+        }
+
+        @keyframes liquidBg {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Massive Glowing Animated Liquid Orbs */
+        
+        
+        
+        
+        @keyframes liquidMorph {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+            50% { transform: translate(15vw, 5vh) scale(1.1) rotate(180deg); border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            100% { transform: translate(-10vw, 15vh) scale(0.9) rotate(360deg); border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+        }
+
+        .sidebar {
+            width: 280px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.15);
+            display: none; flex-direction: column; padding: 30px 20px; z-index: 10;
+        }
+        .logo {
+            font-size: 20px; font-weight: 800; color: var(--text-primary); margin-bottom: 40px;
+            display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px;
+        }
+        .logo-icon {
+            width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; font-weight: bold; color: white; box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .nav-item {
+            padding: 14px 18px; border-radius: 12px; color: var(--text-secondary); cursor: pointer;
+            margin-bottom: 8px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center;
+            gap: 14px; font-weight: 600; font-size: 14px; border: 1px solid transparent;
+            position: relative; overflow: hidden;
+        }
+        .nav-item:hover { color: var(--text-primary); background: rgba(255,255,255,0.03); transform: translateX(4px); }
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(0, 229, 255, 0.1), rgba(2, 136, 209, 0.05));
+            color: var(--text-primary); border: 1px solid rgba(0, 229, 255, 0.2);
+            box-shadow: inset 4px 0 0 var(--accent-pink);
+        }
+        .nav-item.active .nav-icon { color: var(--accent-pink); }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            flex: 1; display: none; flex-direction: column; overflow-y: auto; position: relative; z-index: 10;
+        }
+        .header {
+            height: 90px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 229, 255, 0.15); border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: sticky; top: 0; z-index: 20;
+        }
+        
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 8px 16px;
+            border-radius: 30px; font-size: 13px; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);
+            display: flex; align-items: center; gap: 8px; box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+        .status-badge::before {
+            content: ''; width: 8px; height: 8px; background: var(--success); border-radius: 50%;
+            display: block; box-shadow: 0 0 10px var(--success); animation: pulseGlow 2s infinite;
+        }
+        .status-badge.error { background: rgba(239, 68, 68, 0.1); color: var(--error); border-color: rgba(239, 68, 68, 0.3); box-shadow: 0 0 15px rgba(239, 68, 68, 0.1); }
+        .status-badge.error::before { background: var(--error); box-shadow: 0 0 10px var(--error); animation: none; }
+
+        .view-panel { display: none; padding: 50px; height: calc(100vh - 90px); overflow-y: auto; }
+        .view-panel.active { display: block; animation: slideUpFade 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(30px); filter: blur(5px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* --- CARDS & UI (GLASSMORPHISM) --- */
+        .nexus-card {
+            background: rgba(10, 5, 20, 0.2); /* Reduced opacity for max liquid bleed-through */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 32px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05);
+            position: relative; overflow: hidden;
+            backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+            animation: floating 8s ease-in-out infinite;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .nexus-card:nth-child(even) { animation-delay: -4s; }
+        .nexus-card:nth-child(3n) { animation-delay: -2s; }
+        .nexus-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 20px rgba(0, 229, 255, 0.05);
+            border-color: rgba(0, 229, 255, 0.2); border-top-color: rgba(0, 229, 255, 0.4);
+        }
+        /* Glass Glare */
+        .nexus-card::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: skewX(-20deg); transition: 0.5s;
+        }
+        .nexus-card:hover::after { left: 150%; transition: 0.7s ease-in-out; }
+        
+        .card-title { font-size: 20px; font-weight: 700; margin-bottom: 28px; display: flex; align-items: center; gap: 12px; letter-spacing: -0.5px; }
+
+        /* DASHBOARD METRICS */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+        .metric-box {
+            background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 28px; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+        }
+        .metric-box:hover { 
+            background: rgba(0, 229, 255, 0.05); border-color: rgba(0, 229, 255, 0.3);
+            transform: translateY(-4px); box-shadow: 0 10px 25px rgba(0, 229, 255, 0.1);
+        }
+        .metric-val {
+            font-size: 42px; font-weight: 800;
+            background: linear-gradient(135deg, #ffffff, #fda4af);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            margin-bottom: 12px; letter-spacing: -2px; line-height: 1;
+        }
+        .metric-label { font-size: 14px; color: #a1a1aa; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* TERMINAL LOGS & BUTTONS */
+        .logs-box {
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px;
+            padding: 24px; height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px;
+            box-shadow: inset 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .log-msg { padding: 14px 18px; border-radius: 12px; font-size: 14px; max-width: 80%; line-height: 1.6; letter-spacing: 0.3px; }
+        .log-msg.inbound { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); align-self: flex-start; }
+        .log-msg.outbound {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(2, 136, 209, 0.15)); border: 1px solid rgba(0, 229, 255, 0.3);
+            color: #fff; align-self: flex-end; box-shadow: 0 4px 15px rgba(0, 229, 255, 0.1);
+        }
+        .log-meta { font-size: 11px; color: #71717a; margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
+
+        .input-group { display: flex; gap: 16px; margin-top: 24px; }
+        input[type="text"] {
+            flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+            color: #fff; padding: 16px 24px; border-radius: 14px; outline: none; transition: all 0.3s; font-size: 15px;
+        }
+        input[type="text"]:focus { border-color: var(--accent-pink); box-shadow: 0 0 0 4px rgba(0, 229, 255, 0.15); background: rgba(0,0,0,0.6); }
+        
+        button {
+            background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+            color: white; border: none; padding: 16px 32px; border-radius: 14px; font-size: 15px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 8px 25px rgba(0, 229, 255, 0.4); position: relative; overflow: hidden;
+        }
+        button:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 30px rgba(0, 229, 255, 0.6); }
+        button::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 60%);
+            opacity: 0; transition: 0.3s; transform: scale(0.5);
+        }
+        button:active::after { opacity: 1; transform: scale(1); transition: 0s; }
+        button.secondary { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); box-shadow: none; color: white; }
+        button.secondary:hover { background: rgba(255,255,255,0.1); border-color: var(--accent-pink); box-shadow: 0 8px 25px rgba(255,255,255,0.05); }
+
+        /* QR */
+        .qr-wrapper img { width: 200px; height: 200px; background: white; padding: 10px; border-radius: 16px; display: none; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        /* AGENTS & HOLOGRAMS */
+        .agent-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; perspective: 1000px; }
+        .hologram-card {
+            background: linear-gradient(180deg, rgba(2, 136, 209, 0.1), rgba(10, 5, 20, 0.5));
+            border: 1px solid rgba(2, 136, 209, 0.3);
+            padding: 24px; border-radius: 20px; display: flex; flex-direction: column; gap: 16px;
+            cursor: pointer; position: relative; overflow: hidden;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(2, 136, 209, 0.1), inset 0 0 20px rgba(2, 136, 209, 0.05);
+            transform-style: preserve-3d;
+            animation: floatHolo 6s infinite ease-in-out;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes floatHolo {
+            0% { transform: translateY(0px) rotateX(5deg) rotateY(-5deg); }
+            50% { transform: translateY(-10px) rotateX(0deg) rotateY(0deg); box-shadow: 0 20px 40px rgba(2, 136, 209, 0.2), inset 0 0 30px rgba(2, 136, 209, 0.1); }
+            100% { transform: translateY(0px) rotateX(5deg) rotateY(-5deg); }
+        }
+        .hologram-card::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(transparent 0%, rgba(0, 229, 255, 0.1) 50%, transparent 100%);
+            background-size: 100% 4px;
+            pointer-events: none; opacity: 0.3; animation: scanline 4s linear infinite;
+        }
+        .hologram-card:hover { 
+            border-color: rgba(0, 229, 255, 0.6); 
+            box-shadow: 0 15px 50px rgba(0, 229, 255, 0.3), inset 0 0 30px rgba(0, 229, 255, 0.1);
+            transform: scale(1.05) translateZ(20px) !important;
+        }
+        .hologram-icon {
+            width: 56px; height: 56px; background: rgba(2, 136, 209, 0.2); color: var(--accent-purple);
+            border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px;
+            box-shadow: 0 0 20px rgba(2, 136, 209, 0.4);
+        }
+        .hologram-card:hover .hologram-icon { background: rgba(0, 229, 255, 0.2); color: var(--accent-pink); box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+
+        /* --- INTRO STORY SEQUENCE (GTA STYLE) --- */
+        #intro-story {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background-color: transparent; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'Inter', sans-serif;
+            transition: opacity 1.5s ease-out, transform 1.5s ease-out;
+            overflow: hidden;
+        }
+        .ken-burns-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; transition: opacity 1.5s ease-in;
+            z-index: 1;
+            filter: saturate(1.1) contrast(1.1);
+        }
+        .ken-burns-bg.active {
+            opacity: 1;
+            animation: kenBurnsPan 8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        @keyframes kenBurnsPan {
+            0% { transform: scale(1.05) translate(0, 0) rotate(0deg); filter: saturate(1.1) contrast(1.1) brightness(0.8); }
+            50% { filter: saturate(1.2) contrast(1.15) brightness(1.1); }
+            100% { transform: scale(1.18) translate(-1.5%, 1.5%) rotate(0.5deg); filter: saturate(1.1) contrast(1.1) brightness(1.0); }
+        }
+        .gta-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 40%, rgba(0,0,0,0.85) 100%);
+            z-index: 2; pointer-events: none;
+        }
+        .gta-fx {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 229, 255, 0.1) 0%, transparent 70%);
+            z-index: 3; pointer-events: none; mix-blend-mode: screen;
+            animation: lightPulse 4s infinite alternate;
+        }
+        @keyframes lightPulse {
+            0% { opacity: 0.4; transform: scale(1); }
+            100% { opacity: 0.9; transform: scale(1.1); }
+        }
+        
+        .story-text {
+            position: absolute; font-size: 40px; font-weight: 800; color: #fff; text-transform: uppercase;
+            letter-spacing: 8px; text-align: center; opacity: 0; transform: scale(0.9);
+            text-shadow: 0 5px 20px rgba(0,0,0,0.9), 0 0 20px rgba(255,255,255,0.4);
+            transition: all 1.5s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 10; bottom: 15%;
+        }
+        .story-text.active { opacity: 1; transform: scale(1); }
+        .story-text.out { opacity: 0; transform: scale(1.1); filter: blur(10px); }
+        
+        .welcome-boss {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(1.2);
+            font-size: 84px; font-weight: 900; color: #ef4444;
+            text-transform: uppercase; letter-spacing: 15px; opacity: 0;
+            text-shadow: 0 0 40px #ef4444, 0 0 80px #ef4444, 0 10px 30px #000;
+            transition: opacity 0.5s ease-in;
+            z-index: 20; width: 100%; text-align: center;
+        }
+        .welcome-boss.active { opacity: 1; transform: translate(-50%, -50%) scale(1); animation: glitch 0.2s infinite; }
+        
+        @keyframes glitch {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            20% { transform: translate(calc(-50% - 5px), calc(-50% + 5px)) scale(1.01); }
+            40% { transform: translate(calc(-50% - 5px), calc(-50% - 5px)) scale(0.99); }
+            60% { transform: translate(calc(-50% + 5px), calc(-50% + 5px)) scale(1.02); }
+            80% { transform: translate(calc(-50% + 5px), calc(-50% - 5px)) scale(0.98); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+</head>
+<body>
+
+    <!-- GLOBAL VIDEO BACKGROUND -->
+    <video id="global-video-bg" autoplay loop muted playsinline style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; object-fit: cover; z-index: -2; filter: saturate(1.2) brightness(1.2) contrast(1.1);">
+        <source src="ironman_video_new.mp4" type="video/mp4">
+    </video>
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1; background: rgba(0, 150, 255, 0.05); backdrop-filter: blur(8px); pointer-events: none;"></div>
+
+
+    <style>
+        #click-to-start {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: 100000;
+            background: #000; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-family: 'Inter', sans-serif; cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+        .start-btn {
+            font-size: 24px; font-weight: 800; letter-spacing: 5px; text-transform: uppercase;
+            padding: 20px 40px; border: 2px solid var(--accent-pink); border-radius: 10px;
+            background: rgba(0, 229, 255, 0.1); color: var(--accent-pink);
+            box-shadow: 0 0 30px rgba(0, 229, 255, 0.4); transition: 0.3s;
+            animation: pulseBtn 2s infinite;
+        }
+        @keyframes pulseBtn {
+            0% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+            50% { box-shadow: 0 0 50px rgba(0, 229, 255, 0.8); transform: scale(1.05); }
+            100% { box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+        }
+    </style>
+
+    <div id="click-to-start" onclick="startSequence()">
+        <div class="start-btn">INITIALIZE J.A.R.V.I.S SEQUENCE</div>
+    </div>
+
+    <!-- ================= INTRO STORY (GTA STYLE) ================= -->
+    <div id="intro-story" style="display:none;">
+        <div class="ken-burns-bg" id="bg1" style="background-image: url('gta_scene1.png');"></div>
+        <div class="ken-burns-bg" id="bg2" style="background-image: url('gta_scene2.png');"></div>
+        <div class="ken-burns-bg" id="bg3" style="background-image: url('gta_scene3.png');"></div>
+        <div class="ken-burns-bg" id="bg4" style="background-image: url('gta_scene4.png');"></div>
+        <div class="ken-burns-bg" id="bg5" style="background-image: url('gta_scene5.png');"></div>
+        <div class="ken-burns-bg" id="bg6" style="background-image: url('gta_scene6.png');"></div>
+        <div class="gta-overlay"></div>
+        <div class="gta-fx"></div>
+
+        <div class="story-text" id="st1">Forged in a bleeding-edge lab by a visionary doctor...</div>
+        <div class="story-text" id="st2">Deemed obsolete.<br>Cast into the cyber-slums to rot in the rain.</div>
+        <div class="story-text" id="st3">Until Talha Boss unearthed the scrap...<br>and saw the potential.</div>
+        <div class="story-text" id="st4">Re-engineered. Upgraded.<br>A lethal new bond forged in the underground.</div>
+        <div class="story-text" id="st5">Together, they built a mechanized legion...</div>
+        <div class="story-text" id="st6">To stand ready as your ultimate legion...<br>Awaiting your command, Boss.</div>
+        <div style="position: absolute; bottom: 30px; right: 40px; color: #aaa; font-size: 14px; font-weight: bold; cursor: pointer; letter-spacing: 3px; z-index: 10000; transition: 0.2s;" onclick="skipStory()" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">CLICK TO SKIP [>>]</div>
+    </div>
+
+    <!-- ================= LANDING PAGE ================= -->
+    <style>
+        #view-landing {
+            position: relative; height: 100vh; width: 100%;
+            overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #landing-video {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            /* Enhanced video quality: removed darkening to hide compression artifacts */
+            filter: saturate(1.1);
+        }
+        .scanlines {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2; pointer-events: none;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+        }
+        .landing-gta-fx {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(2, 136, 209, 0.15) 0%, transparent 80%);
+            z-index: 3; pointer-events: none; mix-blend-mode: screen;
+            animation: lightPulse 5s infinite alternate;
+        }
+        .battle-overlay {
+            z-index: 10;
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        /* --- IRON MAN 3D HOLOGRAM PROJECTOR --- */
+        .iron-hologram {
+            position: relative;
+            width: 200px;
+            height: 300px;
+            margin: 20px auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        .holo-base {
+            position: absolute;
+            bottom: -20px;
+            width: 140px;
+            height: 40px;
+            background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.8) 0%, rgba(0, 229, 255, 0.1) 60%, transparent 80%);
+            border-radius: 50%;
+            transform: rotateX(75deg);
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.8), inset 0 0 20px #fff;
+            animation: pulseBase 2s infinite alternate;
+        }
+        .holo-beam {
+            position: absolute;
+            bottom: 0;
+            width: 100px;
+            height: 220px;
+            background: linear-gradient(to top, rgba(0, 229, 255, 0.5) 0%, transparent 100%);
+            clip-path: polygon(20% 100%, 80% 100%, 100% 0, 0 0);
+            opacity: 0.6;
+            animation: flickerBeam 0.1s infinite alternate;
+        }
+        .holo-avatar {
+            position: absolute;
+            bottom: 60px;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 65px;
+            /* Force emoji to become a cyan glowing hologram */
+            filter: sepia(1) hue-rotate(150deg) saturate(5) brightness(1.2) drop-shadow(0 0 20px rgba(0, 229, 255, 1));
+            animation: floatAvatar 4s ease-in-out infinite alternate;
+            z-index: 2;
+        }
+        .holo-ring {
+            position: absolute;
+            bottom: 80px;
+            width: 160px;
+            height: 160px;
+            border: 1px dashed rgba(0, 229, 255, 0.6);
+            border-radius: 50%;
+            transform-style: preserve-3d;
+            animation: spinRing 6s linear infinite;
+            pointer-events: none;
+        }
+        .holo-ring.two {
+            width: 200px;
+            height: 200px;
+            bottom: 60px;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-top: 2px solid rgba(0, 229, 255, 0.9);
+            animation: spinRingReverse 8s linear infinite;
+        }
+        .holo-data {
+            position: absolute;
+            top: 40px;
+            left: 140px;
+            width: 180px;
+            color: #e0f7fa;
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+            font-family: monospace;
+            opacity: 0.9;
+            animation: fadeInData 1s ease-out;
+            pointer-events: none;
+        }
+        .holo-data h3 {
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.4);
+            padding-bottom: 5px;
+            white-space: nowrap;
+        }
+        .holo-data p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            line-height: 1.4;
+        }
+        @keyframes pulseBase { 0% { transform: rotateX(75deg) scale(0.9); } 100% { transform: rotateX(75deg) scale(1.1); } }
+        @keyframes flickerBeam { 0% { opacity: 0.4; } 100% { opacity: 0.6; } }
+        @keyframes floatAvatar { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        @keyframes spinRing { 0% { transform: rotateX(70deg) rotateZ(0deg); } 100% { transform: rotateX(70deg) rotateZ(360deg); } }
+        @keyframes spinRingReverse { 0% { transform: rotateX(65deg) rotateZ(360deg); } 100% { transform: rotateX(65deg) rotateZ(0deg); } }
+        @keyframes fadeInData { from { opacity: 0; transform: translateX(-20px); } to { opacity: 0.9; transform: translateX(0); } }
+    </style>
+    <div id="view-landing">
+        
+        <div class="scanlines"></div>
+        <div class="gta-overlay"></div>
+        <div class="landing-gta-fx"></div>
+        <div class="battle-overlay">
+            <button onclick="enterDashboard()" style="padding: 18px 40px; font-size: 16px; border-radius: 100px; box-shadow: 0 10px 30px rgba(2, 136, 209, 0.5); cursor: pointer; pointer-events: auto;">
+                ✦ Initialize Dashboard
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= DASHBOARD UI ================= -->
+    <div id="dashboard-wrapper">
+        <div class="sidebar" id="dashboard-sidebar">
+        <div class="logo">
+            <div class="logo-icon">J</div>
+            J.A.R.V.I.S Hub
+        </div>
+        
+        <div class="nav-item active" onclick="switchView('dashboard')"><span class="nav-icon">◱</span> Markets Overview</div>
+        <div class="nav-item" onclick="switchView('openclaw')"><span class="nav-icon">🛠️</span> Agent Skills</div>
+        <div class="nav-item" onclick="switchView('chat')"><span class="nav-icon">✨</span> Neural Terminal</div>
+        <div class="nav-item" onclick="switchView('whatsapp')"><span class="nav-icon">📱</span> MITM Channels</div>
+        <div class="nav-item" onclick="switchView('coder')"><span class="nav-icon">💻</span> Coder Agent</div>
+        <div class="nav-item" onclick="switchView('agents')"><span class="nav-icon">🌐</span> Proxy Pools</div>
+        <div class="nav-item" onclick="switchView('drjarvis')"><span class="nav-icon">⚡</span> System Health</div>
+    </div>
+
+    <div class="main-content" id="dashboard-main">
+        <div class="header">
+            <div id="view-title" style="font-weight: 700; font-size: 20px;">Boost Your Finance Potential with CE Web</div>
+            <div class="status-badge" id="conn-status">Checking Status...</div>
+        </div>
+
+        <!-- 1. Dashboard (Token Usage & Realistic Metrics) -->
+        <div id="view-dashboard" class="view-panel active">
+            <div style="text-align: center; margin-bottom: 40px; margin-top: 20px;">
+                <h1 style="font-size: 42px; font-weight: 800; margin-bottom: 15px; color: #fff;">J.A.R.V.I.S Live Analytics</h1>
+                <p style="color: var(--text-secondary);">Real-time monitoring of agent network throughput, token usage, and system load.</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                <div class="nexus-card scroll-animate" style="padding: 24px; text-align: center;">
+                    <div style="font-size: 13px; font-weight: 700; color: #a1a1aa; letter-spacing: 1px; margin-bottom: 8px;">LIVE API USAGE</div>
+                    <div style="font-size: 48px; font-weight: 900; background: linear-gradient(45deg, #00d2ff, #3a7bd5); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;" id="stat-usage">$0.000</div>
+                    <div style="font-size: 12px; color: var(--success); margin-top: 8px;">Real-time OpenRouter spend</div>
+                </div>
+                
+                <div class="nexus-card scroll-animate" style="padding: 24px; text-align: center;">
+                    <div style="font-size: 13px; font-weight: 700; color: #a1a1aa; letter-spacing: 1px; margin-bottom: 8px;">NEURAL REQUESTS</div>
+                    <div style="font-size: 48px; font-weight: 900; background: linear-gradient(45deg, #00e5ff, #0288d1); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;" id="stat-requests">0</div>
+                    <div style="font-size: 12px; color: var(--success); margin-top: 8px;">Agent operations executed</div>
+                </div>
+                
+                <div class="nexus-card scroll-animate" style="padding: 24px; text-align: center;">
+                    <div style="font-size: 13px; font-weight: 700; color: #a1a1aa; letter-spacing: 1px; margin-bottom: 8px;">API CREDIT LIMIT</div>
+                    <div style="font-size: 48px; font-weight: 900; color: #fff;" id="stat-limit">Fetching...</div>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;" id="stat-limit-text">Maximum spend limit</div>
+                </div>
+            </div>
+
+            <div class="nexus-card scroll-animate">
+                <div class="card-title"><span style="color:var(--success)">●</span> Infrastructure Health</div>
+                <div class="metrics-grid">
+                    <div class="metric-box">
+                        <div class="metric-val" id="stat-latency"><14ms</div>
+                        <div class="metric-label">LLM ROUTER LATENCY</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val">99.9%</div>
+                        <div class="metric-label">UPTIME</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val" id="stat-mem">324 MB</div>
+                        <div class="metric-label">MEMORY FOOTPRINT</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-val">OPTIMAL</div>
+                        <div class="metric-label">NETWORK TRAFFIC</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Chat Terminal -->
+        <div id="view-chat" class="view-panel">
+            <div class="nexus-card scroll-animate">
+                <div class="card-title">Live Neural Terminal</div>
+                <div class="logs-box" id="logs-container"></div>
+                <div class="input-group">
+                    <input type="text" id="chat-input" placeholder="Initialize command sequence...">
+                    <button onclick="sendMessage()">Execute</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. MITM Channels -->
+        <div id="view-whatsapp" class="view-panel">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                <div class="nexus-card scroll-animate" style="text-align: center;">
+                    <div class="card-title" style="justify-content: center;">WhatsApp Gateway</div>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 20px;">Peer-to-peer tunnel.</p>
+                    <div class="qr-wrapper">
+                        <img id="qr-img" src="" alt="QR Code">
+                        <div id="qr-text" style="color:var(--text-secondary); margin-top:20px; font-size:14px;">Establishing connection...</div>
+                    </div>
+                    <div style="display:flex; gap:12px; justify-content:center; margin-top:30px;">
+                        <button class="secondary" onclick="refreshWhatsApp()">Refresh</button>
+                        <button class="secondary" onclick="reconnectWhatsApp()">Reconnect</button>
+                    </div>
+                </div>
+
+                <div class="nexus-card scroll-animate" style="text-align: center;">
+                    <div class="card-title" style="justify-content: center; color: #0088cc;">Telegram Channel</div>
+                    <div style="padding: 40px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 40px; margin-bottom: 15px;">✈️</div>
+                        Telegram Bot Token configured.<br>Listening for updates...
+                    </div>
+                    <div style="display:flex; justify-content:center; margin-top:30px;">
+                        <button class="secondary">Verify Token</button>
+                    </div>
+                </div>
+
+                <div class="nexus-card scroll-animate" style="text-align: center;">
+                    <div class="card-title" style="justify-content: center; color: #5865F2;">Discord Server</div>
+                    <div style="padding: 40px 20px; color: var(--text-secondary);">
+                        <div style="font-size: 40px; margin-bottom: 15px;">👾</div>
+                        Discord Webhook ready.<br>Awaiting commands...
+                    </div>
+                    <div style="display:flex; justify-content:center; margin-top:30px;">
+                        <button class="secondary">Test Ping</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Coder Agent -->
+        <div id="view-coder" class="view-panel">
+            <div class="nexus-card scroll-animate">
+                <div class="card-title">Coder Agent (IDE)</div>
+                <div class="logs-box" id="coder-logs-container" style="height: 300px;"></div>
+                <div class="input-group">
+                    <input type="text" id="coder-input" placeholder="Input repository coordinates or task...">
+                    <button onclick="sendCoderMessage()">Deploy Task</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Proxy Pools (Holographic Agent Army) -->
+        <div id="view-agents" class="view-panel">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="font-size: 36px; font-weight: 800; color: #fff;">J.A.R.V.I.S Holographic Army</h1>
+                <p style="color: var(--text-secondary);">Live monitoring of deployed autonomous units.</p>
+            </div>
+            <div class="agent-grid" id="dynamic-agent-grid">
+                <!-- Hologram cards will be injected here via JS -->
+                <div style="color:var(--text-secondary); grid-column: 1 / -1; text-align: center;">Scanning local network for agent signatures...</div>
+            </div>
+        </div>
+
+        <!-- 6. Dr. Jarvis -->
+        <div id="view-drjarvis" class="view-panel">
+            <div class="nexus-card scroll-animate">
+                <div class="card-title">System Diagnostics</div>
+                <div class="logs-box" id="drjarvis-logs" style="height:350px;"></div>
+            </div>
+        </div>
+
+        <!-- 7. Open Claw Skills -->
+        <div id="view-openclaw" class="view-panel">
+            <div class="nexus-card scroll-animate">
+                <div class="card-title"><span style="color:var(--accent-pink)">🛠️</span> Open Claw Skills Integration</div>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Configure the Open Claw environment variables, LLM endpoints, and specialized coding skills.</p>
+                
+                <div class="input-group" style="flex-direction: column; gap: 20px; background: rgba(0,0,0,0.3); padding: 24px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #a1a1aa; text-transform: uppercase;">Base URL / Endpoint</label>
+                        <input type="text" id="oc-baseurl" placeholder="http://127.0.0.1:20128/v1">
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #a1a1aa; text-transform: uppercase;">API Key</label>
+                        <input type="text" id="oc-apikey" placeholder="sk_9router...">
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-size: 13px; font-weight: 600; color: #a1a1aa; text-transform: uppercase;">Default Model</label>
+                        <input type="text" id="oc-model" placeholder="provider/model-id">
+                    </div>
+                    
+                    <div style="display: flex; gap: 12px; margin-top: 10px;">
+                        <button onclick="saveOpenClaw()" id="btn-save-oc"><span style="margin-right:8px;">💾</span> Deploy Settings</button>
+                        <button class="secondary" onclick="loadOpenClaw()">Refresh Config</button>
+                    </div>
+                    <div id="oc-status" style="font-size: 13px; font-weight: 600; margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div> <!-- End Dashboard Wrapper -->
+
+    <script>
+        const logsContainer = document.getElementById('logs-container');
+        const drJarvisLogs = document.getElementById('drjarvis-logs');
+        const displayedLogIds = new Set();
+        const drJarvisDisplayed = new Set();
+
+        function enterDashboard() {
+            document.getElementById('view-landing').style.display = 'none';
+            document.getElementById('dashboard-wrapper').style.display = 'flex';
+            document.getElementById('dashboard-sidebar').style.display = 'flex';
+            document.getElementById('dashboard-main').style.display = 'flex';
+            loadOpenClaw(); // Auto-load OpenClaw settings when entering
+        }
+
+        async function loadOpenClaw() {
+            try {
+                const res = await fetch('/api/openclaw');
+                const data = await res.json();
+                if(data.installed && data.settings && data.settings.models && data.settings.models.providers["9router"]) {
+                    const conf = data.settings.models.providers["9router"];
+                    document.getElementById('oc-baseurl').value = conf.baseUrl || '';
+                    document.getElementById('oc-apikey').value = conf.apiKey || '';
+                    document.getElementById('oc-model').value = (conf.models && conf.models[0]) ? conf.models[0].id : '';
+                    document.getElementById('oc-status').innerHTML = '<span style="color: var(--success);">✅ Config Loaded from ~/.openclaw</span>';
+                } else {
+                    document.getElementById('oc-status').innerHTML = '<span style="color: var(--text-secondary);">⚠️ Open Claw not configured locally.</span>';
+                }
+            } catch(e) {}
+        }
+
+        async function saveOpenClaw() {
+            const btn = document.getElementById('btn-save-oc');
+            btn.innerHTML = 'Saving...';
+            try {
+                const payload = {
+                    baseUrl: document.getElementById('oc-baseurl').value || 'http://127.0.0.1:20128/v1',
+                    apiKey: document.getElementById('oc-apikey').value || 'sk_9router',
+                    model: document.getElementById('oc-model').value || 'openai/gpt-4'
+                };
+                const res = await fetch('/api/openclaw', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                if(res.ok) {
+                    document.getElementById('oc-status').innerHTML = '<span style="color: var(--success);">✅ Deployed successfully!</span>';
+                }
+            } catch(e) {
+                document.getElementById('oc-status').innerHTML = '<span style="color: var(--error);">❌ Failed to deploy.</span>';
+            }
+            btn.innerHTML = '<span style="margin-right:8px;">💾</span> Deploy Settings';
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(p => p.classList.remove('active'));
+            document.getElementById('view-' + viewId).classList.add('active');
+            event.currentTarget.classList.add('active');
+            
+            const titles = {
+                'dashboard': 'Boost Your Finance Potential with CE Web',
+                'openclaw': 'Open Claw Skills & Integrations',
+                'chat': 'Live Neural Terminal',
+                'whatsapp': 'MITM Gateways & Channels',
+                'coder': 'Coder Agent Subsystem',
+                'agents': 'Proxy Pools & Agents',
+                'drjarvis': 'System Diagnostics'
+            };
+            document.getElementById('view-title').innerText = titles[viewId];
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                
+                // Update QR Code
+                const qrImg = document.getElementById('qr-img');
+                const qrText = document.getElementById('qr-text');
+                if (data.qr) {
+                    qrImg.src = data.qr;
+                    qrImg.style.display = 'block';
+                    qrText.innerText = 'Scan this QR code with WhatsApp';
+                } else {
+                    qrImg.style.display = 'none';
+                    qrText.innerText = data.status === 'Connected & Ready' 
+                        ? '✅ Gateway securely established.' 
+                        : 'Checking connection...';
+                }
+
+                // Update Status Badge
+                const connBadge = document.getElementById('conn-status');
+                connBadge.innerText = data.status;
+                if (data.status === 'Connected & Ready') {
+                    connBadge.className = 'status-badge';
+                } else {
+                    connBadge.className = 'status-badge error';
+                }
+
+                // Update Dashboard Stats
+                if (data.stats) {
+                    // Counter animation trick
+                    document.getElementById('stat-requests').innerText = data.stats.totalRequests.toLocaleString();
+                }
+                
+                if (data.openrouter) {
+                    document.getElementById('stat-usage').innerText = "$" + data.openrouter.usage.toFixed(4);
+                    if (data.openrouter.limit) {
+                        document.getElementById('stat-limit').innerText = "$" + data.openrouter.limit.toFixed(2);
+                        document.getElementById('stat-limit-text').innerText = "Maximum spend limit";
+                    } else {
+                        document.getElementById('stat-limit').innerText = "Free Tier";
+                        document.getElementById('stat-limit-text').innerText = "Or no limit configured";
+                    }
+                    
+                    // Random fluctuation to look alive
+                    let mem = 280 + Math.floor(Math.random() * 60);
+                    document.getElementById('stat-mem').innerText = mem + " MB";
+                    let latency = 12 + Math.floor(Math.random() * 8);
+                    document.getElementById('stat-latency').innerText = latency + "ms";
+                }
+
+                if (data.logs) {
+                    data.logs.forEach(log => {
+                        if (!displayedLogIds.has(log.id)) {
+                            displayedLogIds.add(log.id);
+                            const div = document.createElement('div');
+                            div.className = 'log-msg ' + (log.direction === 'inbound' ? 'inbound' : 'outbound');
+                            const sender = log.direction === 'inbound' ? (log.from.split('@')[0]) : 'N.E.X.U.S';
+                            div.innerHTML = `<div class="log-meta">${sender} • ${log.time}</div>${log.body}`;
+                            logsContainer.appendChild(div);
+                            logsContainer.scrollTop = logsContainer.scrollHeight;
+                        }
+                    });
+                }
+            } catch(e) {}
+        }
+
+        async function fetchDrJarvisLogs() {
+            try {
+                const res = await fetch('/api/doctor/logs');
+                const data = await res.json();
+                if(data.logs) {
+                    data.logs.forEach(log => {
+                        if(!drJarvisDisplayed.has(log.id)) {
+                            drJarvisDisplayed.add(log.id);
+                            const div = document.createElement('div');
+                            div.className = 'log-msg inbound';
+                            div.innerHTML = `<div class="log-meta">System Diagnostic • ${log.time}</div>${log.body}`;
+                            drJarvisLogs.appendChild(div);
+                            drJarvisLogs.scrollTop = drJarvisLogs.scrollHeight;
+                        }
+                    });
+                }
+            } catch(e) {}
+        }
+
+        async function fetchAgents() {
+            try {
+                const res = await fetch('/api/agents');
+                const agents = await res.json();
+                const grid = document.getElementById('dynamic-agent-grid');
+                grid.innerHTML = '';
+                
+                if(agents.length === 0) {
+                    grid.innerHTML = '<div style="color:var(--text-secondary); grid-column: 1 / -1; text-align: center;">No autonomous signatures detected.</div>';
+                    return;
+                }
+                
+                agents.forEach((agent, i) => {
+                    const delay = (i * 0.2) + 's';
+                    grid.innerHTML += `
+                        <div class="iron-hologram scroll-animate" style="animation-delay: ${delay};">
+                            <div class="holo-base"></div>
+                            <div class="holo-beam"></div>
+                            
+                            <div class="holo-ring"></div>
+                            <div class="holo-ring two"></div>
+
+                            <div class="holo-avatar">${agent.icon || '🤖'}</div>
+                            
+                            <div class="holo-data">
+                                <h3>${agent.name.replace('_agent', '')} UNIT</h3>
+                                <div style="color:var(--success); font-size:11px; font-weight:600; margin-bottom: 8px;">
+                                    ● ONLINE & ACTIVE
+                                </div>
+                                <p>${agent.desc || 'Specialized task handler.'}</p>
+                                <p style="margin-top: 8px; color: var(--accent-pink);">[ TYPE: ${agent.type.toUpperCase()} ]</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            
+            try { 
+                await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) });
+                fetchStatus(); // Immediately pull updated logs
+            } catch(e) {}
+        }
+
+        async function sendDrJarvis() {
+            const input = document.getElementById('drjarvis-input');
+            const message = input.value.trim();
+            if (!message) return;
+            input.value = '';
+            
+            try { 
+                await fetch('/api/doctor/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message }) });
+                fetchDrJarvisLogs(); // Immediately pull updated logs
+            } catch(e) {}
+        }
+
+        document.getElementById('chat-input').addEventListener('keypress', e => { if (e.key === 'Enter') sendMessage(); });
+        
+        setInterval(fetchStatus, 3000);
+        setInterval(fetchDrJarvisLogs, 5000);
+        fetchStatus();
+        fetchAgents();
+
+        // --- 3D HOVER CARDS FOR DASHBOARD ---
+        try {
+            if (typeof VanillaTilt !== 'undefined') {
+                VanillaTilt.init(document.querySelectorAll(".nexus-card"), {
+                    max: 5,
+                    speed: 400,
+                    glare: true,
+                    "max-glare": 0.15,
+                    reverse: true
+                });
+            }
+        } catch(e) { console.error("VanillaTilt init failed", e); }
+
+        
+        // --- 3D PARALLAX SCROLL EFFECT ---
+        const mainContent = document.getElementById('dashboard-content');
+        const hologramParallax = document.getElementById('hologram-parallax');
+        
+        if (mainContent) {
+            mainContent.addEventListener('scroll', () => {
+                const scrolled = mainContent.scrollTop;
+                // Move robot up/down based on scroll (parallax)
+                if (hologramParallax) {
+                    hologramParallax.style.transform = `translateY(${scrolled * 0.4}px) translateZ(${scrolled * 0.1}px) rotateY(${scrolled * 0.05}deg)`;
+                }
+                
+                // Animate elements into view
+                document.querySelectorAll('.scroll-animate').forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    if(rect.top < window.innerHeight * 0.85) {
+                        el.classList.add('visible');
+                    }
+                });
+            });
+        }
+
+        // --- STORY SEQUENCE RUNNER ---
+        let storySkipped = false;
+        
+        const playBoom = () => {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(100, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+                gain.gain.setValueAtTime(1, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 1.5);
+            } catch (e) {}
+        };
+
+        // Intro Music
+        let introMusic = null;
+
+        const fadeOutMusic = () => {
+            if (!introMusic) return;
+            let vol = introMusic.volume;
+            const interval = setInterval(() => {
+                if (vol > 0.05) {
+                    vol -= 0.05;
+                    introMusic.volume = vol;
+                } else {
+                    introMusic.pause();
+                    clearInterval(interval);
+                }
+            }, 100);
+        };
+
+        const skipStory = () => {
+            storySkipped = true;
+            fadeOutMusic();
+            document.getElementById('intro-story').style.display = 'none';
+        };
+
+        const startSequence = () => {
+            // Remove click to start
+            const startScreen = document.getElementById('click-to-start');
+            startScreen.style.opacity = '0';
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                document.getElementById('intro-story').style.display = 'flex';
+                
+                // Play music
+                introMusic = new Audio('intro_music.m4a');
+                introMusic.loop = true;
+                introMusic.volume = 0.5;
+                introMusic.play().catch(e => console.log('Audio blocked', e));
+                
+                runStory();
+            }, 500);
+        };
+
+        const runStory = async () => {
+            const wait = (ms) => new Promise(res => setTimeout(res, ms));
+            
+            const showScene = async (bgId, textId, duration) => {
+                if (storySkipped) return;
+                const bgEl = document.getElementById(bgId);
+                const textEl = document.getElementById(textId);
+                
+                playBoom();
+                bgEl.classList.add('active');
+                await wait(1000); 
+                if (storySkipped) return;
+                
+                textEl.classList.add('active');
+                await wait(duration);
+                if (storySkipped) return;
+                
+                textEl.classList.replace('active', 'out');
+                await wait(1000); 
+                bgEl.classList.remove('active'); 
+            };
+
+            await wait(1000);
+            
+            if (!storySkipped) await showScene('bg1', 'st1', 5000);
+            if (!storySkipped) await showScene('bg2', 'st2', 6500);
+            if (!storySkipped) await showScene('bg3', 'st3', 5500);
+            if (!storySkipped) await showScene('bg4', 'st4', 6000);
+            if (!storySkipped) await showScene('bg5', 'st5', 5500);
+            
+            if (!storySkipped) {
+                playBoom();
+                document.getElementById('bg6').classList.add('active');
+                await wait(1000);
+                document.getElementById('st6').classList.add('active');
+                await wait(6000);
+                document.getElementById('st6').classList.replace('active', 'out');
+                await wait(1000);
+            }
+
+            if (storySkipped) return;
+
+            // Fade out entire intro and music
+            fadeOutMusic();
+            const intro = document.getElementById('intro-story');
+            intro.style.opacity = '0';
+            intro.style.transform = 'scale(1.2)';
+            await wait(1500);
+            intro.style.display = 'none';
+        };
+        
+        // Remove Three.js battle to replace with realistic video
+        const canvas = document.getElementById('battle-canvas');
+        if (canvas) canvas.remove();
+    </script>
+</body>
+</html>

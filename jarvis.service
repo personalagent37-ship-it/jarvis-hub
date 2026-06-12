@@ -1,0 +1,15 @@
+[Unit]
+Description=JARVIS voice assistant
+After=graphical-session.target sound.target
+Wants=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/talha/Desktop/jartvis
+ExecStart=/home/talha/Desktop/jartvis/start.sh
+Restart=always
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target
