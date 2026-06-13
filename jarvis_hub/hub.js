@@ -115,8 +115,9 @@ client.on('message_create', async (msg) => {
         const toIsMe = (myNumber && msg.to.includes(myNumber)) || msg.to.includes('@lid') || msg.to === msg.from;
         const isSelfChat = msg.fromMe && toIsMe;
         
-        if (msg.fromMe && !toIsMe) {
-            return; // STRICT USER REQUIREMENT: Do not read messages I send to my friends so we don't accidentally trigger commands!
+        // STRICT USER REQUIREMENT: Completely ignore EVERYTHING except the "Message Yourself" chat
+        if (!isSelfChat) {
+            return;
         }
         
         // Log the message to the dashboard

@@ -16,6 +16,9 @@ echo "=================================================="
 # Forcefully kill any lingering background processes holding our ports
 fuser -k 20128/tcp 3000/tcp 5000/tcp 8080/tcp 2>/dev/null || true
 
+# Delete the Puppeteer profile lock to prevent Code 21 crash
+find jarvis_hub/whatsapp_session -name "SingletonLock" -type f -delete 2>/dev/null || true
+
 # Start the Python Webhook Server
 python3 whatsapp_server.py &
 PYTHON_PID=$!

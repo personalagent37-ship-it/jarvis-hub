@@ -42,7 +42,6 @@ def send_whatsapp_message_to_contact(contact_name: str, message: str, media_base
     if not contact_name or not message:
         return "Failed: contact_name and message are required."
     try:
-        import requests
         contacts_res = requests.get("http://localhost:3000/api/contacts", timeout=5).json()
         target = None
         
@@ -271,7 +270,6 @@ def whatsapp_webhook():
         print(f"[WHATSAPP] Routing task directly to CoderAgent...")
         try:
             import sys
-            import requests
             if "/home/talha/Desktop/jartvis" not in sys.path:
                 sys.path.append("/home/talha/Desktop/jartvis")
             from coder_agent import CoderAgent
@@ -295,7 +293,6 @@ def whatsapp_webhook():
             try:
                 # Use OpenRouter to generate the reply
                 from config import OPENROUTER_API_KEY, OPENROUTER_MODEL, OPENROUTER_BASE_URL
-                import requests
                 headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
                 prompt = f"You are acting as: {persona}\nThe user says: {incoming_msg}\nReply strictly in character, briefly and naturally as this is a WhatsApp chat. Do not add quotes around your response."
                 payload = {

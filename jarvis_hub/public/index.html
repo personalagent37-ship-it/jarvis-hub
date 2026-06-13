@@ -292,7 +292,65 @@
             border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px;
             box-shadow: 0 0 20px rgba(2, 136, 209, 0.4);
         }
-        .hologram-card:hover .hologram-icon { background: rgba(0, 229, 255, 0.2); color: var(--accent-pink); box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+        /* AGENT MODAL (GIANT HOLOGRAM) */
+        #agent-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px); perspective: 1500px;
+        }
+        
+        .giant-hologram-wrapper {
+            position: relative; width: 600px; height: 600px; max-width: 90vw;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transform-style: preserve-3d;
+            transform: scale(0.5) translateY(100px); opacity: 0; 
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .giant-hologram-wrapper.active { transform: scale(1) translateY(0); opacity: 1; animation: floatGiant 6s infinite alternate ease-in-out 0.5s; }
+        
+        @keyframes floatGiant {
+            0% { transform: scale(1) translateY(0) rotateX(2deg) rotateY(-2deg); }
+            100% { transform: scale(1) translateY(-15px) rotateX(-2deg) rotateY(2deg); }
+        }
+
+        .giant-base { width: 280px; height: 60px; bottom: 20px; box-shadow: 0 0 60px rgba(0, 229, 255, 0.8), inset 0 0 30px #fff; }
+        .giant-beam { width: 200px; height: 400px; bottom: 50px; clip-path: polygon(15% 100%, 85% 100%, 100% 0, 0 0); opacity: 0.4; }
+        .giant-ring { width: 300px; height: 300px; bottom: 80px; border-width: 2px; }
+        .giant-ring-two { width: 380px; height: 380px; bottom: 40px; border-width: 2px; border-top-width: 4px; }
+        
+        .giant-holo-avatar {
+            font-size: 80px; margin-top: -80px; margin-bottom: 20px;
+            filter: sepia(1) hue-rotate(150deg) saturate(5) brightness(1.2) drop-shadow(0 0 40px rgba(0, 229, 255, 1));
+            animation: floatGiantAvatar 4s ease-in-out infinite alternate; display: inline-block;
+        }
+        @keyframes floatGiantAvatar { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        
+        .agent-modal-content {
+            background: linear-gradient(180deg, rgba(2, 136, 209, 0.2), rgba(10, 5, 20, 0.7));
+            border: 1px solid rgba(0, 229, 255, 0.5);
+            border-top: 2px solid rgba(0, 229, 255, 0.9);
+            border-radius: 20px; padding: 40px; width: 80%;
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3), inset 0 0 30px rgba(0, 229, 255, 0.1);
+            text-align: center; position: relative; z-index: 10;
+            backdrop-filter: blur(15px); margin-bottom: 60px;
+            text-shadow: 0 0 15px rgba(0, 229, 255, 0.5);
+            overflow: hidden;
+        }
+        
+        .agent-modal-content::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(transparent 0%, rgba(0, 229, 255, 0.15) 50%, transparent 100%);
+            background-size: 100% 4px; pointer-events: none; opacity: 0.4; animation: scanline 4s linear infinite;
+        }
+        
+        .close-modal {
+            position: absolute; top: 15px; right: 20px; font-size: 24px; color: var(--text-secondary);
+            cursor: pointer; transition: 0.2s; z-index: 20;
+        }
+        .close-modal:hover { color: var(--accent-pink); }
+        .modal-agent-name { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+        .modal-agent-type { font-size: 14px; color: var(--accent-pink); margin-bottom: 25px; letter-spacing: 1px; font-weight: 600; }
+        .modal-agent-desc { font-size: 16px; color: var(--text-secondary); line-height: 1.6; }
 
         /* --- INTRO STORY SEQUENCE (GTA STYLE) --- */
         #intro-story {
@@ -404,6 +462,24 @@
 
     <div id="click-to-start" onclick="startSequence()">
         <div class="start-btn">INITIALIZE J.A.R.V.I.S SEQUENCE</div>
+    </div>
+
+    <!-- AGENT DETAILS MODAL -->
+    <div id="agent-modal" onclick="closeAgentModal(event)">
+        <div class="giant-hologram-wrapper" id="giant-holo-wrapper" onclick="event.stopPropagation()">
+            <div class="holo-base giant-base"></div>
+            <div class="holo-beam giant-beam"></div>
+            <div class="holo-ring giant-ring"></div>
+            <div class="holo-ring two giant-ring-two"></div>
+            
+            <div class="agent-modal-content">
+                <div class="giant-holo-avatar" id="modal-icon">🤖</div>
+                <div class="close-modal" onclick="closeAgentModal(event)">✖</div>
+                <div class="modal-agent-name" id="modal-title">AGENT UNIT</div>
+                <div class="modal-agent-type" id="modal-type">[ TYPE: CORE AGENT ]</div>
+                <div class="modal-agent-desc" id="modal-desc">Agent description goes here...</div>
+            </div>
+        </div>
     </div>
 
     <!-- ================= INTRO STORY (GTA STYLE) ================= -->
@@ -928,8 +1004,13 @@
                 
                 agents.forEach((agent, i) => {
                     const delay = (i * 0.2) + 's';
+                    // Escape single quotes for the onclick handler
+                    const safeName = agent.name.replace(/'/g, "\\'");
+                    const safeDesc = agent.desc.replace(/'/g, "\\'");
+                    const safeType = agent.type.replace(/'/g, "\\'");
+                    const safeIcon = (agent.icon || '🤖').replace(/'/g, "\\'");
                     grid.innerHTML += `
-                        <div class="iron-hologram scroll-animate" style="animation-delay: ${delay};">
+                        <div class="iron-hologram scroll-animate" style="animation-delay: ${delay}; cursor: pointer;" onclick="showAgentDetails('${safeName}', '${safeDesc}', '${safeType}', '${safeIcon}')">
                             <div class="holo-base"></div>
                             <div class="holo-beam"></div>
                             
@@ -952,6 +1033,28 @@
             } catch(e) {
                 console.error(e);
             }
+        }
+
+        function showAgentDetails(name, desc, type, icon) {
+            document.getElementById('modal-icon').innerText = icon || '🤖';
+            document.getElementById('modal-title').innerText = name.replace('_agent', '') + ' UNIT';
+            document.getElementById('modal-type').innerText = '[ TYPE: ' + type.toUpperCase() + ' ]';
+            document.getElementById('modal-desc').innerText = desc;
+            
+            const modal = document.getElementById('agent-modal');
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('giant-holo-wrapper').classList.add('active');
+            }, 10);
+        }
+
+        function closeAgentModal(e) {
+            if (e) e.stopPropagation();
+            const modal = document.getElementById('agent-modal');
+            document.getElementById('giant-holo-wrapper').classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 400);
         }
 
         async function sendMessage() {
