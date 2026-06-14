@@ -5,6 +5,9 @@ export WAYLAND_DISPLAY=wayland-0
 export XAUTHORITY=$HOME/.Xauthority
 export DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$(id -u)/bus"
 
+# Allow local GUI applications to connect to the display (Fixes "Authorization required" error)
+xhost +local: >/dev/null 2>&1 || true
+
 # Load NVM and Node 20 for 9Router compatibility
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"

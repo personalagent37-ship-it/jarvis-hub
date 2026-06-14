@@ -9,7 +9,7 @@ load_dotenv()
 API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")
 
 CODER_API_BASE = "https://openrouter.ai/api/v1/chat/completions"
-CODER_MODEL = "openai/gpt-4o-mini"
+CODER_MODEL = "google/gemini-2.0-flash-exp:free"
 
 class CoderAgent:
     def __init__(self):
@@ -110,6 +110,73 @@ STRICT PROFESSIONAL CODING RULES:
                         "required": ["port"]
                     }
                 }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "serper_web_search",
+                    "description": "Search the web using Google Search via Serper API. Useful for finding documentation, fixing bugs, or looking up recent information.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "query": {"type": "string", "description": "The exact search query."}
+                        },
+                        "required": ["query"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "replace_file_content",
+                    "description": "Replace a specific substring in a file. Use this for surgical edits instead of rewriting the entire file.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "filepath": {"type": "string"},
+                            "target_content": {"type": "string"},
+                            "replacement_content": {"type": "string"}
+                        },
+                        "required": ["filepath", "target_content", "replacement_content"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "take_screenshot",
+                    "description": "Take a screenshot of the computer screen to visually analyze VS Code or the browser.",
+                    "parameters": {"type": "object", "properties": {}}
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "gui_click",
+                    "description": "Move the mouse to coordinates (x, y) and click. Use this to interact with IDEs or browsers.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "x": {"type": "integer"},
+                            "y": {"type": "integer"}
+                        },
+                        "required": ["x", "y"]
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "gui_type",
+                    "description": "Type a string of text using the keyboard.",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "text": {"type": "string"}
+                        },
+                        "required": ["text"]
+                    }
+                }
             }
         ]
 
@@ -173,6 +240,80 @@ STRICT PROFESSIONAL CODING RULES:
             except Exception as e:
                 return f"Netcat Error: {e}"
                 
+        elif name == "serper_web_search":
+            query = args.get("query", "")
+            serper_key = os.environ.get("SERPER_API_KEY")
+            if not serper_key:
+                return "Error: SERPER_API_KEY is not set in the environment (.env file). Ask the user to add it."
+            try:
+                url = "https://google.serper.dev/search"
+                payload = json.dumps({"q": query})
+                headers = {
+                  'X-API-KEY': serper_key,
+                  'Content-Type': 'application/json'
+                }
+                response = requests.post(url, headers=headers, data=payload, timeout=15)
+                response.raise_for_status()
+                data = response.json()
+                
+                organic = data.get("organic", [])
+                results = []
+                
+                answer_box = data.get("answerBox", {})
+                if answer_box:
+                    ans = answer_box.get('snippet') or answer_box.get('answer')
+                    if ans:
+                        results.append(f"[ANSWER BOX]\n{ans}\n")
+                        
+                for idx, item in enumerate(organic[:5]):
+                    results.append(f"{idx+1}. {item.get('title')}\nURL: {item.get('link')}\nSnippet: {item.get('snippet')}\n")
+                    
+                return "\n".join(results) if results else "No results found."
+            except Exception as e:
+                return f"Error executing web search: {e}"
+                
+        elif name == "replace_file_content":
+            filepath = args.get("filepath")
+            target = args.get("target_content")
+            replacement = args.get("replacement_content")
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read()
+                if target not in content:
+                    return f"Error: target_content not found exactly in {filepath}."
+                content = content.replace(target, replacement)
+                with open(filepath, "w", encoding="utf-8") as f:
+                    f.write(content)
+                return f"Successfully replaced content in {filepath}."
+            except Exception as e:
+                return f"Error replacing content: {e}"
+                
+        elif name == "take_screenshot":
+            try:
+                import tools.computer_use as computer
+                res = computer.take_screenshot()
+                return "Screenshot captured and saved to memory."
+            except Exception as e:
+                return f"Error capturing screenshot: {e}"
+                
+        elif name == "gui_click":
+            try:
+                import tools.computer_use as computer
+                x, y = args.get("x"), args.get("y")
+                computer.click(x=x, y=y)
+                return f"Clicked at ({x}, {y})."
+            except Exception as e:
+                return f"Error clicking: {e}"
+                
+        elif name == "gui_type":
+            try:
+                import tools.computer_use as computer
+                text = args.get("text")
+                computer.type_text(text=text)
+                return f"Typed text."
+            except Exception as e:
+                return f"Error typing: {e}"
+                
         return "Unknown tool."
 
     def process_task(self, task_description: str) -> str:
@@ -196,7 +337,9 @@ STRICT PROFESSIONAL CODING RULES:
             
             headers = {
                 "Authorization": f"Bearer {API_KEY}", 
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "HTTP-Referer": "http://localhost:3000",
+                "X-Title": "Jarvis Coder Agent"
             }
             
             try:

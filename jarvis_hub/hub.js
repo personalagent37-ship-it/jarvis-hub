@@ -104,21 +104,24 @@ client.on('message_create', async (msg) => {
         if (!body) return;
         
         const myNumber = client.info && client.info.wid ? client.info.wid.user : '';
-        console.log(`[DEBUG] Incoming message. Body: "${body}". From: "${msg.from}", To: "${msg.to}", fromMe: ${msg.fromMe}`);
         
         if (!myNumber) {
             console.log('[DEBUG] Warning: myNumber is empty. client.info might not be loaded yet.');
         }
         
-        // Check if the message is in the "Message Yourself" chat without using getChat() (which hangs).
-        // In self-chats, you are the sender (msg.fromMe) AND the recipient is yourself (msg.to).
-        const toIsMe = (myNumber && msg.to.includes(myNumber)) || msg.to.includes('@lid') || msg.to === msg.from;
-        const isSelfChat = msg.fromMe && toIsMe;
+        const lowerBody = body.toLowerCase();
+        const explicitlyCalled = lowerBody.startsWith('jarvis') || lowerBody.startsWith('coder') || lowerBody.startsWith('antigravity');
         
-        // STRICT USER REQUIREMENT: Completely ignore EVERYTHING except the "Message Yourself" chat
-        if (!isSelfChat) {
+        // TRUE self chat: matches exact phone number OR matches your exact private WhatsApp @lid
+        const myLid = '171691921666125';
+        const isSelfChat = msg.fromMe && (msg.to === msg.from || (myNumber && msg.to.includes(myNumber)) || msg.to.includes(myLid));
+        
+        // USER REQUIREMENT: Only process the message if Jarvis is explicitly called OR if it's a true self-chat.
+        if (!isSelfChat && !explicitlyCalled) {
             return;
         }
+        
+        console.log(`\n[DEBUG] JARVIS INTERCEPTED MESSAGE. Body: "${body}". From: "${msg.from}", To: "${msg.to}"`);
         
         // Log the message to the dashboard
         addLog(msg.fromMe ? 'outbound' : 'inbound', msg.from, msg.to, body);
