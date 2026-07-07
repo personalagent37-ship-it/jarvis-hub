@@ -84,8 +84,12 @@ function getBrowserPath() {
 // We use LocalAuth to save the session locally so you don't have to scan the QR code every time
 const client = new Client({
     authStrategy: new LocalAuth({ dataPath: path.join(__dirname, 'whatsapp_session') }),
+    authTimeoutMs: 180000,
+    qrMaxRetries: 10,
     puppeteer: {
         headless: true,
+        timeout: 180000,
+        protocolTimeout: 180000,
         executablePath: getBrowserPath(),
         args: [
             '--no-sandbox',
@@ -119,6 +123,17 @@ const client = new Client({
         type: 'local'
     },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
+});
+
+// Extend Puppeteer default timeouts during loading screen to prevent 30s crash on cloud free tier
+client.on('loading_screen', (percent, message) => {
+    console.log(`[WHATSAPP LOADING] ${percent}% - ${message}`);
+    if (client.pupPage) {
+        try {
+            client.pupPage.setDefaultTimeout(180000);
+            client.pupPage.setDefaultNavigationTimeout(180000);
+        } catch(e) {}
+    }
 });
 
 // Generate QR Code for authentication
