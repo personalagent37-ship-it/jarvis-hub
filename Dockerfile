@@ -53,4 +53,4 @@ COPY . .
 EXPOSE 5000 3000
 
 # Launch Xvfb virtual display, Python Brain, and Node.js WhatsApp Gateway
-CMD ["/bin/bash", "-c", "Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & python3 whatsapp_server.py & cd jarvis_hub && node hub.js"]
+CMD ["/bin/bash", "-c", "rm -rf /tmp/.X*-lock /tmp/.X11-unix && Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & python3 whatsapp_server.py & cd jarvis_hub && node hub.js"]
