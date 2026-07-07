@@ -43,7 +43,7 @@ RUN playwright install-deps chromium 2>/dev/null || true
 
 # Copy Node.js hub requirements and install packages without strict lockfile checks
 COPY jarvis_hub/package*.json ./jarvis_hub/
-RUN cd jarvis_hub && npm install --no-package-lock --no-audit
+RUN cd jarvis_hub && npm install --no-package-lock --no-audit && npx puppeteer browsers install chrome
 
 # Copy the entire JARVIS repository into the container
 COPY . .

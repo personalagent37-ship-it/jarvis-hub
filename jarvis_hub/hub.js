@@ -37,6 +37,10 @@ function addLog(direction, from, to, body) {
 
 // Helper to find valid browser path for both Docker cloud and local laptop
 function getBrowserPath() {
+    // If Render Dashboard injected an old browser path that no longer exists in our Docker container, delete it!
+    if (process.env.PUPPETEER_EXECUTABLE_PATH && !fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
+        delete process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
     if (process.env.PUPPETEER_EXECUTABLE_PATH && fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
         return process.env.PUPPETEER_EXECUTABLE_PATH;
     }
