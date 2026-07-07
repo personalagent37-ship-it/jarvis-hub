@@ -115,14 +115,12 @@ const client = new Client({
             '--metrics-recording-only',
             '--mute-audio',
             '--safebrowsing-disable-auto-update',
-            '--ignore-certificate-errors',
-            '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
+            '--ignore-certificate-errors'
         ]
     },
     webVersionCache: {
         type: 'local'
-    },
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
+    }
 });
 
 // Extend Puppeteer default timeouts during loading screen to prevent 30s crash on cloud free tier

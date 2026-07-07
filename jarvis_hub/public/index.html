@@ -1063,6 +1063,15 @@
             } catch(e) {}
         }
 
+        async function reconnectWhatsApp() {
+            if (!confirm("Are you sure you want to reset the WhatsApp session and generate a fresh QR code?")) return;
+            try {
+                await fetch('/api/whatsapp/reconnect', { method: 'POST' });
+                alert("Session reset! Please wait 30-60 seconds for a fresh QR code to appear.");
+                fetchStatus();
+            } catch(e) {}
+        }
+
         async function sendDrJarvis() {
             const input = document.getElementById('drjarvis-input');
             const message = input.value.trim();
