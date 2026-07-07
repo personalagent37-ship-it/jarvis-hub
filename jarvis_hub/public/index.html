@@ -914,7 +914,7 @@
                     qrImg.style.display = 'none';
                     qrText.innerText = data.status === 'Connected & Ready' 
                         ? '✅ Gateway securely established.' 
-                        : 'Checking connection...';
+                        : `⏳ ${data.status} (Please wait 30-60 seconds for cloud browser to load WhatsApp Web...)`;
                 }
 
                 // Update Status Badge
