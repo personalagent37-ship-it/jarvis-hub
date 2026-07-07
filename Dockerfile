@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
 # Set environment variables for Chromium, Puppeteer, and Headless X11 Display
 ENV DISPLAY=:0
 ENV WAYLAND_DISPLAY=wayland-0
+ENV XDG_RUNTIME_DIR=/tmp
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 ENV BROWSER_ENGINE=chromium
