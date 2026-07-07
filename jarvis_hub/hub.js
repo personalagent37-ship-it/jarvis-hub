@@ -279,7 +279,7 @@ app.get('/api/status', async (req, res) => {
         
         let qrDataURI = null;
         if (latestQR) {
-            try { qrDataURI = await qrImage.toDataURL(latestQR); } catch (e) {}
+            try { qrDataURI = await qrImage.toDataURL(latestQR, { width: 500, margin: 2, color: { dark: '#000000', light: '#ffffff' } }); } catch (e) {}
         }
         
         let orUsage = 0, orLimit = 0;

@@ -54,14 +54,14 @@ def health_check():
                 <html>
                 <head>
                     <title>JARVIS WhatsApp Auth</title>
-                    <meta http-equiv="refresh" content="4">
+                    <meta http-equiv="refresh" content="15">
                     <style>
                         body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }}
-                        .card {{ background: #1e293b; padding: 2.5rem; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; max-width: 400px; width: 90%; }}
+                        .card {{ background: #1e293b; padding: 2.5rem; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; max-width: 450px; width: 90%; }}
                         h1 {{ color: #38bdf8; margin-bottom: 0.5rem; font-size: 1.5rem; }}
                         p {{ color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem; }}
-                        .qr-box {{ background: white; padding: 1rem; border-radius: 0.75rem; display: inline-block; margin-bottom: 1.5rem; }}
-                        img {{ width: 250px; height: 250px; display: block; }}
+                        .qr-box {{ background: white; padding: 1.5rem; border-radius: 0.75rem; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }}
+                        img {{ width: 350px; height: 350px; display: block; image-rendering: pixelated; }}
                         .status {{ display: inline-block; padding: 0.5rem 1rem; background: #0369a1; color: white; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; }}
                     </style>
                 </head>
