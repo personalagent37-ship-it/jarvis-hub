@@ -39,6 +39,10 @@ home_automation = HomeAutomation()
 vision = Vision()
 from flask import jsonify
 
+@app.route('/', methods=['GET', 'HEAD'])
+def health_check():
+    return "JARVIS 24/7 Cloud Brain is ONLINE!", 200
+
 @app.route('/api/limits', methods=['GET'])
 def get_api_limits():
     try:
