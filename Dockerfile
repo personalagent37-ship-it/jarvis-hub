@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
     linux-libc-dev \
+    chromium \
+    chromium-driver \
     libxss1 \
     libasound2 \
     libgtk-3-0 \
@@ -31,6 +33,7 @@ RUN apt-get update && apt-get install -y \
 # Set environment variables for Chromium, Puppeteer, and Headless X11 Display
 ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
+ENV PUPPETEER_CACHE_DIR=/app/jarvis_hub/.cache/puppeteer
 ENV BROWSER_ENGINE=chromium
 ENV PYTHONUNBUFFERED=1
 

@@ -37,15 +37,49 @@ function addLog(direction, from, to, body) {
 
 // Helper to find valid browser path for both Docker cloud and local laptop
 function getBrowserPath() {
-    // If Render Dashboard injected an old browser path that no longer exists in our Docker container, delete it!
-    if (process.env.PUPPETEER_EXECUTABLE_PATH && !fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
-        delete process.env.PUPPETEER_EXECUTABLE_PATH;
-    }
+    // 1. Check explicit environment variable if file exists
     if (process.env.PUPPETEER_EXECUTABLE_PATH && fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
         return process.env.PUPPETEER_EXECUTABLE_PATH;
     }
-    // Return undefined by default so Puppeteer uses its bundled official Google Chrome for Testing!
-    return undefined;
+    // 2. Search local cache directories for downloaded Google Chrome for Testing
+    const cacheDirs = [
+        process.env.PUPPETEER_CACHE_DIR || path.join(__dirname, '.cache/puppeteer'),
+        '/root/.cache/puppeteer',
+        path.join(process.env.HOME || '', '.cache/puppeteer')
+    ];
+    for (const dir of cacheDirs) {
+        if (dir && fs.existsSync(dir)) {
+            const findChrome = (currentDir) => {
+                try {
+                    const files = fs.readdirSync(currentDir, { withFileTypes: true });
+                    for (const file of files) {
+                        const fullPath = path.join(currentDir, file.name);
+                        if (file.isDirectory()) {
+                            const found = findChrome(fullPath);
+                            if (found) return found;
+                        } else if (file.name === 'chrome' || file.name === 'chromium' || file.name === 'chrome-linux64') {
+                            if (fs.existsSync(fullPath)) return fullPath;
+                        }
+                    }
+                } catch (e) { /* ignore read errors */ }
+                return null;
+            };
+            const foundBrowser = findChrome(dir);
+            if (foundBrowser) return foundBrowser;
+        }
+    }
+    // 3. Fallback to common system browser paths
+    const commonPaths = [
+        '/usr/bin/chromium',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/snap/bin/chromium'
+    ];
+    for (const p of commonPaths) {
+        if (fs.existsSync(p)) return p;
+    }
+    return undefined; // Let Puppeteer resolve
 }
 
 // Set up the WhatsApp Client
