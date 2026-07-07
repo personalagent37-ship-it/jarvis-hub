@@ -8,6 +8,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
+    build-essential \
+    python3-dev \
+    linux-libc-dev \
     chromium \
     chromium-driver \
     libxss1 \
