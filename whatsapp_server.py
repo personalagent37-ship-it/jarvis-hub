@@ -41,6 +41,64 @@ from flask import jsonify
 
 @app.route('/', methods=['GET', 'HEAD'])
 def health_check():
+    if request.method == 'HEAD':
+        return "OK", 200
+    try:
+        resp = requests.get("http://127.0.0.1:3000/api/status", timeout=2)
+        if resp.status_code == 200:
+            data = resp.json()
+            status = data.get("status", "Unknown")
+            qr_data_uri = data.get("qr")
+            if qr_data_uri:
+                return f"""
+                <html>
+                <head>
+                    <title>JARVIS WhatsApp Auth</title>
+                    <meta http-equiv="refresh" content="4">
+                    <style>
+                        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }}
+                        .card {{ background: #1e293b; padding: 2.5rem; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; max-width: 400px; width: 90%; }}
+                        h1 {{ color: #38bdf8; margin-bottom: 0.5rem; font-size: 1.5rem; }}
+                        p {{ color: #94a3b8; font-size: 0.95rem; margin-bottom: 1.5rem; }}
+                        .qr-box {{ background: white; padding: 1rem; border-radius: 0.75rem; display: inline-block; margin-bottom: 1.5rem; }}
+                        img {{ width: 250px; height: 250px; display: block; }}
+                        .status {{ display: inline-block; padding: 0.5rem 1rem; background: #0369a1; color: white; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h1>JARVIS WhatsApp Auth</h1>
+                        <p>Open WhatsApp on your phone -> Linked Devices -> Link a Device</p>
+                        <div class="qr-box">
+                            <img src="{qr_data_uri}" alt="WhatsApp QR Code" />
+                        </div>
+                        <div class="status">Status: {status}</div>
+                    </div>
+                </body>
+                </html>
+                """, 200
+            elif "Connected" in status or "Ready" in status:
+                return f"""
+                <html>
+                <head>
+                    <title>JARVIS Online</title>
+                    <style>
+                        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }}
+                        .card {{ background: #1e293b; padding: 3rem; border-radius: 1rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; border: 1px solid #334155; }}
+                        h1 {{ color: #4ade80; margin-bottom: 1rem; font-size: 2rem; }}
+                        p {{ color: #cbd5e1; font-size: 1.1rem; }}
+                    </style>
+                </head>
+                <body>
+                    <div class="card">
+                        <h1>✅ JARVIS is Connected!</h1>
+                        <p>Your 24/7 Autonomous Cloud Assistant is ONLINE & Ready.</p>
+                    </div>
+                </body>
+                </html>
+                """, 200
+    except Exception as e:
+        pass
     return "JARVIS 24/7 Cloud Brain is ONLINE!", 200
 
 @app.route('/api/limits', methods=['GET'])
