@@ -64,24 +64,10 @@ const client = new Client({
             '--no-sandbox',
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
-            '--no-zygote',
-            '--disable-gpu',
             '--disable-accelerated-2d-canvas',
-            '--disable-software-rasterizer',
-            '--js-flags=--max-old-space-size=256',
-            '--disable-breakpad',
-            '--no-crash-upload',
-            '--disable-ipc-flooding-protection',
-            '--disable-background-networking',
-            '--disable-default-apps',
-            '--disable-extensions',
-            '--disable-sync',
-            '--disable-translate',
-            '--metrics-recording-only',
-            '--mute-audio',
             '--no-first-run',
-            '--safebrowsing-disable-auto-update',
-            '--ignore-certificate-errors'
+            '--no-zygote',
+            '--disable-gpu'
         ]
     },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
