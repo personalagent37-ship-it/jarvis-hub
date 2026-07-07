@@ -55,5 +55,5 @@ COPY . .
 # Expose port 5000 (Python Brain Webhook) and 3000 (Node.js Hub)
 EXPOSE 5000 3000
 
-# Clean stale X11 lock files, start Xvfb virtual screen directly, and launch Python Brain & Node.js WhatsApp Gateway
-CMD ["/bin/bash", "-c", "rm -rf /tmp/.X* /tmp/.X11-unix && Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & python3 whatsapp_server.py & cd jarvis_hub && node hub.js"]
+# Clean stale X11 lock files, start Xvfb virtual screen directly, wait 3s for display socket, and launch Python Brain & Node.js WhatsApp Gateway
+CMD ["/bin/bash", "-c", "rm -rf /tmp/.X* /tmp/.X11-unix && Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & sleep 3 && python3 whatsapp_server.py & cd jarvis_hub && node hub.js"]
