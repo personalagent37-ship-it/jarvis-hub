@@ -11,8 +11,6 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
     linux-libc-dev \
-    chromium \
-    chromium-driver \
     libxss1 \
     libasound2 \
     libgtk-3-0 \
@@ -46,7 +44,7 @@ RUN playwright install-deps chromium 2>/dev/null || true
 
 # Copy Node.js hub requirements and install packages without strict lockfile checks
 COPY jarvis_hub/package*.json ./jarvis_hub/
-RUN cd jarvis_hub && npm install --no-package-lock --no-audit && npx puppeteer browsers install chrome
+RUN cd jarvis_hub && npm install --no-package-lock --no-audit && npx puppeteer browsers install chrome && chmod -R 777 /app/jarvis_hub/.cache
 
 # Copy the entire JARVIS repository into the container
 COPY . .

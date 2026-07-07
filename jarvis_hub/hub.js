@@ -68,10 +68,8 @@ function getBrowserPath() {
             if (foundBrowser) return foundBrowser;
         }
     }
-    // 3. Fallback to common system browser paths
+    // 3. Fallback to common system browser paths (excluding Debian system chromium which crashes on Render)
     const commonPaths = [
-        '/usr/bin/chromium',
-        '/usr/bin/chromium-browser',
         '/usr/bin/google-chrome',
         '/usr/bin/google-chrome-stable',
         '/snap/bin/chromium'
