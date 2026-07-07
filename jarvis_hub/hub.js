@@ -65,9 +65,22 @@ const client = new Client({
             '--disable-setuid-sandbox',
             '--disable-dev-shm-usage',
             '--disable-accelerated-2d-canvas',
+            '--disable-software-rasterizer',
             '--no-first-run',
             '--no-zygote',
-            '--disable-gpu'
+            '--disable-gpu',
+            '--js-flags=--max-old-space-size=256',
+            '--disable-breakpad',
+            '--no-crash-upload',
+            '--disable-ipc-flooding-protection',
+            '--disable-default-apps',
+            '--disable-extensions',
+            '--disable-sync',
+            '--disable-translate',
+            '--metrics-recording-only',
+            '--mute-audio',
+            '--safebrowsing-disable-auto-update',
+            '--ignore-certificate-errors'
         ]
     },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
