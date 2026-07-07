@@ -40,17 +40,8 @@ function getBrowserPath() {
     if (process.env.PUPPETEER_EXECUTABLE_PATH && fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
         return process.env.PUPPETEER_EXECUTABLE_PATH;
     }
-    const commonPaths = [
-        '/usr/bin/chromium',
-        '/usr/bin/chromium-browser',
-        '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable',
-        '/snap/bin/chromium'
-    ];
-    for (const p of commonPaths) {
-        if (fs.existsSync(p)) return p;
-    }
-    return undefined; // Let Puppeteer use its own internal bundled browser
+    // Return undefined by default so Puppeteer uses its bundled official Google Chrome for Testing!
+    return undefined;
 }
 
 // Set up the WhatsApp Client
