@@ -15,8 +15,10 @@ RUN apt-get update && apt-get install -y \
     libgtk-3-0 \
     libgbm-dev \
     libnss3 \
+    libgl1 \
+    libglib2.0-0 \
     procps \
-    fuser \
+    psmisc \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
