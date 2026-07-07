@@ -21,13 +21,17 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     libglib2.0-0 \
     xvfb \
+    xauth \
+    xfonts-base \
+    x11-xkb-utils \
     procps \
     psmisc \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for Chromium and Puppeteer
+# Set environment variables for Chromium, Puppeteer, and Headless X11 Display
+ENV DISPLAY=:99
 ENV XDG_RUNTIME_DIR=/tmp
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
@@ -51,5 +55,5 @@ COPY . .
 # Expose port 5000 (Python Brain Webhook) and 3000 (Node.js Hub)
 EXPOSE 5000 3000
 
-# Launch with xvfb-run auto-servernum (-a) so it automatically finds a free X11 display without lock conflicts
-CMD ["/bin/bash", "-c", "xvfb-run -a --server-args='-screen 0 1280x1024x24 -ac +extension GLX +render -noreset' /bin/bash -c 'python3 whatsapp_server.py & cd jarvis_hub && node hub.js'"]
+# Clean stale X11 lock files, start Xvfb virtual screen directly, and launch Python Brain & Node.js WhatsApp Gateway
+CMD ["/bin/bash", "-c", "rm -rf /tmp/.X* /tmp/.X11-unix && Xvfb :99 -screen 0 1280x1024x24 -ac +extension GLX +render -noreset & python3 whatsapp_server.py & cd jarvis_hub && node hub.js"]
