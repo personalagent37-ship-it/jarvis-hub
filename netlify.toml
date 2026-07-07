@@ -1,0 +1,10 @@
+[build]
+  # Point Netlify to our dedicated UI/Frontend directory
+  publish = "jarvis_hub/public"
+  command = "echo 'Static HTML Dashboard - Ready for Netlify'"
+
+# Ensure smooth single-page navigation and dashboard loading
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -23,6 +23,8 @@ import tools.system_info as sysinfo
 import tools.email_tool as email_tool
 from tools.car_control import CarControl
 from tools.home_automation import HomeAutomation
+from tools.iot_controller import iot_controller
+import tools.skill_manager as skills
 from vision import Vision
 import army
 
@@ -35,9 +37,25 @@ os_actions = OSActions()
 car_control = CarControl()
 home_automation = HomeAutomation()
 vision = Vision()
+from flask import jsonify
 
-
-
+@app.route('/api/limits', methods=['GET'])
+def get_api_limits():
+    try:
+        from config import OPENROUTER_API_KEY
+        headers = {"Authorization": f"Bearer {OPENROUTER_API_KEY}"}
+        resp = requests.get("https://openrouter.ai/api/v1/auth/key", headers=headers, timeout=5)
+        if resp.status_code == 200:
+            data = resp.json().get('data', {})
+            return jsonify({
+                "usage": data.get("usage", 0),
+                "limit": data.get("limit", "Unlimited"),
+                "is_free_tier": data.get("is_free_tier", False),
+                "rate_limit": data.get("rate_limit", {})
+            })
+        return jsonify({"error": "Failed to fetch"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 def send_whatsapp_message_to_contact(contact_name: str, message: str, media_base64: str = None) -> str:
     if not contact_name or not message:
         return "Failed: contact_name and message are required."
@@ -162,6 +180,10 @@ def execute_action(action: str, params: dict):
         "open_terminal":      lambda p: computer.open_terminal(),
         "browse_url":         lambda p: browser.navigate(**p),
         "search_web":         lambda p: browser.search_web(**p),
+        "play_media":         lambda p: browser.play_media(p.get("query", "")),
+        "web_scrape":         lambda p: browser.web_scrape(p.get("url", "")),
+        "click_element":      lambda p: browser.click_element(p.get("selector", "")),
+        "get_page_text":      lambda p: browser.get_page_text(),
         "open_mail":          lambda p: browser.open_mail(),
         "search_mail":        lambda p: browser.search_mail(),
         "read_mail_page":     lambda p: browser.read_mail_page(),
@@ -201,6 +223,9 @@ def execute_action(action: str, params: dict):
         "restart_service":    lambda p: sysctl.restart_service(**p),
         "kill_process":       lambda p: sysctl.kill_process(**p),
         
+        # IoT & Real World
+        "iot_command":        lambda p: iot_controller.publish_command(p.get("topic"), p.get("command"), p.get("value")),
+        
         # Code Execution
         "run_command":        lambda p: os_actions.run_command(p.get('command')),
         "run_python":         lambda p: runner.run_python(**p),
@@ -239,6 +264,11 @@ def execute_action(action: str, params: dict):
         "send_message":       lambda p: send_whatsapp_message_to_contact(p.get("contact_name"), p.get("message"), p.get("media_base64")),
         "start_auto_reply":   lambda p: start_auto_reply(p.get("contact_name"), p.get("persona")),
         "stop_auto_reply":    lambda p: stop_auto_reply(p.get("contact_name")),
+        
+        # Hermes Self-Evolution Skills
+        "create_skill":       lambda p: skills.create_skill(p.get("name"), p.get("description"), p.get("code")),
+        "list_skills":        lambda p: skills.list_skills(),
+        "execute_skill":      lambda p: skills.execute_skill(p.get("name"), p.get("params")),
     }
     
     func = action_map.get(action)

@@ -39,10 +39,6 @@ function addLog(direction, from, to, body) {
 // We use LocalAuth to save the session locally so you don't have to scan the QR code every time
 const client = new Client({
     authStrategy: new LocalAuth({ dataPath: path.join(__dirname, 'whatsapp_session') }),
-    webVersionCache: {
-        type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
-    },
     puppeteer: {
         headless: true,
         args: [
@@ -53,7 +49,11 @@ const client = new Client({
             '--disable-backgrounding-occluded-windows',
             '--disable-renderer-backgrounding',
             '--disable-gpu',
-            '--disable-extensions'
+            '--disable-extensions',
+            '--no-first-run',
+            '--no-default-browser-check',
+            '--disable-default-apps',
+            '--fast-start'
         ]
     },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -103,39 +103,45 @@ client.on('message_create', async (msg) => {
         const body = msg.body ? msg.body.trim() : '';
         if (!body) return;
         
-        const myNumber = client.info && client.info.wid ? client.info.wid.user : '';
+        console.log(`[RAW WHATSAPP MESSAGE] Body: "${body}" | From: "${msg.from}" | To: "${msg.to}" | fromMe: ${msg.fromMe}`);
         
-        if (!myNumber) {
-            console.log('[DEBUG] Warning: myNumber is empty. client.info might not be loaded yet.');
-        }
+        const myNumber = client.info && client.info.wid ? client.info.wid.user : '918522847086';
         
+        let chatName = '';
+        try {
+            const chat = await msg.getChat();
+            chatName = (chat.name || '').toLowerCase();
+        } catch(e) {}
+
         const lowerBody = body.toLowerCase();
         const explicitlyCalled = lowerBody.startsWith('jarvis') || lowerBody.startsWith('coder') || lowerBody.startsWith('antigravity');
         
-        // TRUE self chat: matches exact phone number OR matches your exact private WhatsApp @lid
+        // TRUE self chat or special Jarvis console chats
         const myLid = '171691921666125';
-        const isSelfChat = msg.fromMe && (msg.to === msg.from || (myNumber && msg.to.includes(myNumber)) || msg.to.includes(myLid));
+        const isSelfChat = msg.fromMe && (msg.to === msg.from || msg.to.includes(myNumber) || msg.to.includes(myLid));
+        const isJarvisConsoleChat = chatName.includes('jarvis') || chatName.includes('console') || chatName.includes('antigravity') || chatName.includes('ai') || chatName.includes('bot');
         
-        // USER REQUIREMENT: Only process the message if Jarvis is explicitly called OR if it's a true self-chat.
-        if (!isSelfChat && !explicitlyCalled) {
+        // USER REQUIREMENT: Respond to user in self-chat OR Jarvis console group OR when explicitly called
+        if (!isSelfChat && !explicitlyCalled && !isJarvisConsoleChat) {
+            console.log(`[FILTERED OUT] Skipped "${body}" in chat "${chatName || msg.to}".`);
             return;
+        }
+        
+        // RACE CONDITION FIX: Ignore exact or partial messages sent by Jarvis API to prevent infinite loops
+        const isBotMessage = botSentMessageTexts.some(sentMsg => 
+            body === sentMsg || 
+            body.startsWith(sentMsg.substring(0, 20)) || 
+            sentMsg.startsWith(body.substring(0, 20))
+        ) || (msg.fromMe && (body.includes('[Action Completed') || body.includes('[Coder Agent') || body.includes('[SECURITY]') || body.includes('for you, Talha')));
+        
+        if (isBotMessage) {
+            return; 
         }
         
         console.log(`\n[DEBUG] JARVIS INTERCEPTED MESSAGE. Body: "${body}". From: "${msg.from}", To: "${msg.to}"`);
         
         // Log the message to the dashboard
         addLog(msg.fromMe ? 'outbound' : 'inbound', msg.from, msg.to, body);
-
-        // RACE CONDITION FIX: Ignore exact or partial messages sent by Jarvis API to prevent infinite loops
-        // WhatsApp sometimes strips trailing spaces, or normalizes newlines, so we check if the body starts with or matches our sent text.
-        const isBotMessage = botSentMessageTexts.some(sentMsg => 
-            body === sentMsg || 
-            body.startsWith(sentMsg.substring(0, 30)) || 
-            sentMsg.startsWith(body.substring(0, 30))
-        );
-        if (isBotMessage) {
-            return; 
-        }
     
     console.log(`\n[WHATSAPP] Received from YOU: ${body}`);
     addLog('inbound', msg.from, msg.to, body);

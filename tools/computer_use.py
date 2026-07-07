@@ -7,6 +7,8 @@ def _gui():
     global _pyautogui
     if _pyautogui is None:
         try:
+            os.environ["DISPLAY"] = os.environ.get("DISPLAY", ":0")
+            os.environ["XAUTHORITY"] = os.environ.get("XAUTHORITY", os.path.expanduser("~/.Xauthority"))
             import pyautogui
             pyautogui.FAILSAFE = True
             pyautogui.PAUSE = 0.4

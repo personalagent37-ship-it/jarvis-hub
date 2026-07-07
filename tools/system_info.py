@@ -22,10 +22,12 @@ def get_system_info() -> str:
 
 def get_active_window() -> str:
     """Get the currently active window name."""
+    import os
+    env = {"DISPLAY": ":0", "XAUTHORITY": os.path.expanduser("~/.Xauthority"), **os.environ}
     try:
         result = subprocess.run(
             ["xdotool", "getactivewindow", "getwindowname"],
-            capture_output=True, text=True, timeout=5
+            capture_output=True, text=True, timeout=5, env=env
         )
         return result.stdout.strip() or "Desktop"
     except Exception:

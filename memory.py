@@ -20,6 +20,14 @@ class Memory:
             )
         """)
         self.conn.execute("""
+            CREATE VIRTUAL TABLE IF NOT EXISTS conversations_fts USING fts5(
+                user_message,
+                assistant_message,
+                content='conversations',
+                content_rowid='id'
+            )
+        """)
+        self.conn.execute("""
             CREATE TABLE IF NOT EXISTS facts (
                 key TEXT PRIMARY KEY,
                 value TEXT,
@@ -29,9 +37,14 @@ class Memory:
         self.conn.commit()
 
     def save(self, user: str, assistant: str):
-        self.conn.execute(
+        cursor = self.conn.execute(
             "INSERT INTO conversations (timestamp, user_message, assistant_message) VALUES (?, ?, ?)",
             (datetime.now().isoformat(), user, assistant)
+        )
+        rowid = cursor.lastrowid
+        self.conn.execute(
+            "INSERT INTO conversations_fts (rowid, user_message, assistant_message) VALUES (?, ?, ?)",
+            (rowid, user, assistant)
         )
         self.conn.commit()
 
@@ -42,6 +55,24 @@ class Memory:
         )
         rows = cursor.fetchall()
         return [{"user": r[0], "assistant": r[1]} for r in reversed(rows)]
+
+    def search_memory(self, query: str, limit: int = 3) -> list:
+        """Lightweight Predictive Memory Retrieval (Step 2 Implementation)"""
+        try:
+            # Clean query for FTS5
+            clean_query = ''.join(e for e in query if e.isalnum() or e.isspace())
+            if not clean_query.strip():
+                return []
+            
+            cursor = self.conn.execute(
+                "SELECT user_message, assistant_message FROM conversations_fts WHERE conversations_fts MATCH ? ORDER BY rank LIMIT ?",
+                (clean_query, limit)
+            )
+            rows = cursor.fetchall()
+            return [{"user": r[0], "assistant": r[1]} for r in rows]
+        except Exception as e:
+            print(f"[MEMORY] Search error: {e}")
+            return []
 
     def save_fact(self, key: str, value: str):
         self.conn.execute(

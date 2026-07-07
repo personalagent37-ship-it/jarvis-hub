@@ -37,35 +37,42 @@ def reboot(delay: int = 0) -> str:
 
 def lock_screen() -> str:
     """Lock the screen."""
+    env = {"DISPLAY": ":0", "XAUTHORITY": os.path.expanduser("~/.Xauthority"), **os.environ}
     try:
-        subprocess.run(["gnome-screensaver-command", "-l"], timeout=5)
+        subprocess.run(["xdg-screensaver", "lock"], timeout=5, env=env)
+        return "Screen locked"
+    except:
+        pass
+    try:
+        subprocess.run(["gnome-screensaver-command", "-l"], timeout=5, env=env)
         return "Screen locked"
     except:
         try:
-            subprocess.run(["loginctl", "lock-session"], timeout=5)
+            subprocess.run(["loginctl", "lock-session"], timeout=5, env=env)
             return "Screen locked"
         except Exception as e:
             return f"Error: {e}"
 
 def unlock_screen(password: str = None) -> str:
     """Unlock the screen."""
+    env = {"DISPLAY": ":0", "XAUTHORITY": os.path.expanduser("~/.Xauthority"), **os.environ}
     try:
         # Try loginctl first which usually doesn't need the password
-        subprocess.run(["loginctl", "unlock-session"], timeout=5)
+        subprocess.run(["loginctl", "unlock-session"], timeout=5, env=env)
         
         # If password is provided, try typing it in case GNOME requires it
         if password:
             import time
             try:
                 # Wake up the screen
-                subprocess.run(["xdotool", "mousemove_relative", "1", "1"], timeout=2, env=os.environ)
+                subprocess.run(["xdotool", "mousemove_relative", "1", "1"], timeout=2, env=env)
                 time.sleep(0.5)
                 # Hit escape to clear screen saver
-                subprocess.run(["xdotool", "key", "Escape"], timeout=2, env=os.environ)
+                subprocess.run(["xdotool", "key", "Escape"], timeout=2, env=env)
                 time.sleep(1)
                 # Type password and hit enter
-                subprocess.run(["xdotool", "type", password], timeout=2, env=os.environ)
-                subprocess.run(["xdotool", "key", "Return"], timeout=2, env=os.environ)
+                subprocess.run(["xdotool", "type", password], timeout=2, env=env)
+                subprocess.run(["xdotool", "key", "Return"], timeout=2, env=env)
             except:
                 pass
                 

@@ -1,5 +1,6 @@
 from urllib.parse import quote
 
+import os
 import subprocess
 
 from config import BROWSER_ENGINE, DATA_DIR
@@ -19,10 +20,12 @@ class Browser:
                 self.close()
                 self._playwright = sync_playwright().start()
                 browser_type = getattr(self._playwright, BROWSER_ENGINE, self._playwright.firefox)
+                env = {"DISPLAY": os.environ.get("DISPLAY", ":0"), "XAUTHORITY": os.environ.get("XAUTHORITY", os.path.expanduser("~/.Xauthority")), **os.environ}
                 self._context = browser_type.launch_persistent_context(
                     self._profile_dir,
                     headless=False,
-                    args=['--no-sandbox', '--disable-setuid-sandbox']
+                    args=['--no-sandbox', '--disable-setuid-sandbox'],
+                    env=env
                 )
                 self._page = self._context.pages[0] if self._context.pages else self._context.new_page()
             except Exception as e:
@@ -249,6 +252,29 @@ class Browser:
         self._page.click(selector)
         return f"Clicked {selector}"
 
+    def play_media(self, query: str) -> str:
+        """Search YouTube and directly open/play the top video result."""
+        import urllib.request
+        import re
+        try:
+            search_url = f"https://www.youtube.com/results?search_query={quote(query)}"
+            req = urllib.request.Request(search_url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+            html = urllib.request.urlopen(req, timeout=10).read().decode("utf-8")
+            match = re.search(r'"/watch\?v=([a-zA-Z0-9_-]{11})"', html)
+            if match:
+                vid = match.group(1)
+                video_url = f"https://www.youtube.com/watch?v={vid}"
+                return self.navigate(video_url)
+        except Exception as e:
+            print(f"[BROWSER] play_media error: {e}")
+        return self.navigate(f"https://www.youtube.com/results?search_query={quote(query)}")
+
+    def web_scrape(self, url: str) -> str:
+        """Navigate to URL and scrape visible text."""
+        self.navigate(url)
+        text = self.get_page_text()
+        return text if text else f"Opened {url}"
+
     def close(self):
         """Safely close browser and cleanup"""
         try:
@@ -317,3 +343,12 @@ def start_whatsapp_call(contact: str = "", video: bool = False) -> str:
 
 def get_page_text() -> str:
     return _get_browser().get_page_text()
+
+def play_media(query: str) -> str:
+    return _get_browser().play_media(query)
+
+def web_scrape(url: str) -> str:
+    return _get_browser().web_scrape(url)
+
+def click_element(selector: str) -> str:
+    return _get_browser().click_element(selector)

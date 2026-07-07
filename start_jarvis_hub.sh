@@ -27,22 +27,18 @@ python3 whatsapp_server.py &
 PYTHON_PID=$!
 
 echo "=================================================="
-echo " Starting Auto-Security Daemon"
+echo " Starting Auto-Security Daemon & Context Daemon"
 echo "=================================================="
 python3 auto_security.py &
 SECURITY_PID=$!
 
-sleep 2
+# python3 context_daemon.py &
+# CONTEXT_PID=$!
 
-echo "=================================================="
-echo " Starting 9Router (Unlimited Claude API Proxy)"
-echo "=================================================="
-cd 9router
-npm run dev &
-ROUTER_PID=$!
-cd ..
+python3 cyber_watcher.py &
+CYBER_PID=$!
 
-sleep 2
+sleep 0.5
 
 # Start the Node.js Jarvis Hub Client
 cd jarvis_hub
@@ -50,7 +46,7 @@ node hub.js &
 NODE_PID=$!
 
 # Trap Ctrl+C (SIGINT) to cleanly exit background processes
-trap "echo -e '\nStopping JARVIS Hub and 9Router...'; kill $PYTHON_PID $ROUTER_PID $NODE_PID $SECURITY_PID; exit" SIGINT SIGTERM
+trap "echo -e '\nStopping JARVIS Hub, Context, and Cyber-Watcher...'; kill $PYTHON_PID $NODE_PID $SECURITY_PID $CONTEXT_PID $CYBER_PID 2>/dev/null; exit" SIGINT SIGTERM
 
 echo "=================================================="
 echo " Both servers are running in the background."
@@ -58,8 +54,8 @@ echo " Check the output above for the QR code!"
 echo "=================================================="
 
 # Wait for any of the critical processes to exit
-wait -n $PYTHON_PID $ROUTER_PID $NODE_PID
+wait -n $PYTHON_PID $NODE_PID
 
 # If any process dies, kill the rest and exit so SystemD can restart the whole bundle cleanly
-kill $PYTHON_PID $ROUTER_PID $NODE_PID $SECURITY_PID 2>/dev/null
+kill $PYTHON_PID $NODE_PID $SECURITY_PID $CONTEXT_PID $CYBER_PID 2>/dev/null
 exit 1

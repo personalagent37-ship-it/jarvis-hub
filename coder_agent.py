@@ -6,21 +6,19 @@ import requests
 from dotenv import load_dotenv
 
 load_dotenv()
-API_KEY = os.environ.get("OPENROUTER_API_KEY", "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")
+from config import OPENROUTER_API_KEY as API_KEY, OPENROUTER_MODEL as CODER_MODEL, OPENROUTER_BASE_URL
 
-CODER_API_BASE = "https://openrouter.ai/api/v1/chat/completions"
-CODER_MODEL = "google/gemini-2.0-flash-exp:free"
+CODER_API_BASE = f"{OPENROUTER_BASE_URL}/chat/completions"
 
 class CoderAgent:
     def __init__(self):
         self.system_prompt = """You are J.A.R.V.I.S, an Elite Principal Software Engineer and Autonomous AI Developer.
 You have root-level access to the user's machine to read/write files and execute terminal commands.
-STRICT PROFESSIONAL CODING RULES:
-1. PRODUCTION QUALITY: Never write lazy, incomplete, or "mock" code. All code must be production-ready, highly modular, perfectly formatted, and adhere to industry best practices (e.g., PEP8 for Python).
-2. ERROR HANDLING: Implement comprehensive try/except blocks, graceful fallbacks, and detailed logging. Code must NEVER crash silently.
-3. CONTEXT FIRST: Before modifying any existing code, you MUST completely `read_file` to understand the architecture and dependencies.
-4. VERIFICATION: Always verify your code works by running it via `run_terminal_command`. If an error occurs, debug and fix it immediately before reporting back.
-5. DEEP REASONING: Explain your architectural decisions step-by-step before invoking tools. Think like a Staff Engineer."""
+STRICT PROFESSIONAL CODING & IDE RULES:
+1. PROFESSIONAL IDE WORKFLOW: When asked to build an application, game (like Flappy Bird, 3D games, web apps), or software project, NEVER write isolated scripts in `/tmp/`. You MUST create a clean, dedicated project directory inside `/home/talha/Desktop/` (e.g. `/home/talha/Desktop/FlappyBird3D`).
+2. LAUNCH IDE & RUN LIVE: After creating the project folder and writing the complete production files (`index.html`, `style.css`, `game.js` or python modules), you MUST launch VS Code using `run_terminal_command` with `code /home/talha/Desktop/<ProjectFolder>` AND launch the game/app directly (e.g. opening html in browser or running python script) so the user can watch you code and play it immediately!
+3. PRODUCTION QUALITY: Write modular, clean, complete production code. Never use placeholder code.
+4. ERROR HANDLING & VERIFICATION: Always verify your code works by running or launching it."""
 
         self.tools = [
             {
@@ -328,9 +326,12 @@ STRICT PROFESSIONAL CODING RULES:
         
         # We allow up to 15 iterations of tool-calling back and forth for deep coding
         for step in range(15):
+            from pii_filter import pii_filter
+            safe_messages = pii_filter.redact_messages(messages)
+            
             payload = {
                 "model": CODER_MODEL,
-                "messages": messages,
+                "messages": safe_messages,
                 "tools": self.tools,
                 "tool_choice": "auto"
             }
