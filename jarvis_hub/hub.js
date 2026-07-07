@@ -35,13 +35,31 @@ function addLog(direction, from, to, body) {
     if (messageLogs.length > 50) messageLogs.pop();
 }
 
+// Helper to find valid browser path for both Docker cloud and local laptop
+function getBrowserPath() {
+    if (process.env.PUPPETEER_EXECUTABLE_PATH && fs.existsSync(process.env.PUPPETEER_EXECUTABLE_PATH)) {
+        return process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+    const commonPaths = [
+        '/usr/bin/chromium',
+        '/usr/bin/chromium-browser',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/snap/bin/chromium'
+    ];
+    for (const p of commonPaths) {
+        if (fs.existsSync(p)) return p;
+    }
+    return undefined; // Let Puppeteer use its own internal bundled browser
+}
+
 // Set up the WhatsApp Client
 // We use LocalAuth to save the session locally so you don't have to scan the QR code every time
 const client = new Client({
     authStrategy: new LocalAuth({ dataPath: path.join(__dirname, 'whatsapp_session') }),
     puppeteer: {
         headless: true,
-        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium',
+        executablePath: getBrowserPath(),
         args: [
             '--no-sandbox', 
             '--disable-setuid-sandbox', 
